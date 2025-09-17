@@ -13,7 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 
 export default function SignInPage() {
 
-     const [errorMessage] = useState(null) //عشان يطبع الايرور اللي هيظهر عندي من ال api
+     const [errorMessage, setErrorMessage] = useState<string | null>(null) //عشان يطبع الايرور اللي هيظهر عندي من ال api
      const [btnIsLoading , setBtnIsLoading] = useState(true)
         const router = useRouter()
 
@@ -41,21 +41,23 @@ export default function SignInPage() {
  async function onSubmit(values: Inputs) {
     console.log(values);
     setBtnIsLoading(false)
+    setErrorMessage(null)
     
 try {
-    const response = await signIn("credentials" , {
+    // Use NextAuth redirect flow so a new request is made and middleware sees the cookie
+    await signIn("credentials" , {
         email:values.email,
         password:values.password,
-        redirect:false,
+        redirect:true,
+        callbackUrl:"/",
     })
-    console.log(response);
+    // If signIn does not redirect (e.g., unexpected), restore button state
     setBtnIsLoading(true)
-    if(response?.ok){
-        router.push("/")
-    }
     
 } catch (error) {
     console.log(error);
+    setErrorMessage("Invalid email or password")
+    setBtnIsLoading(true)
     
 }
     
