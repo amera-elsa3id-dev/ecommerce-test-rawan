@@ -1,22 +1,17 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 
 
-export function middleware(request: NextRequest) {
- 
-    // NextAuth uses different cookie names depending on HTTPS vs HTTP
-    // - Local/HTTP: "next-auth.session-token"
-    // - HTTPS/production: "__Secure-next-auth.session-token"
-    const token =
-      request.cookies.get("next-auth.session-token")?.value ||
-      request.cookies.get("__Secure-next-auth.session-token")?.value;
+export async function middleware(request: NextRequest) {
+  // getToken handles both cookie names and signed/encrypted cookies
+  const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
 
-    if (!token) {
-      return NextResponse.redirect(new URL('/signin', request.url))
-    } else {
-      return NextResponse.next();
-    }
- 
+  if (!token) {
+    return NextResponse.redirect(new URL('/signin', request.url))
+  }
+
+  return NextResponse.next();
 }
  
 // See "Matching Paths" below to learn more
